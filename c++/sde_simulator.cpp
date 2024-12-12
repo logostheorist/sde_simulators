@@ -1,4 +1,4 @@
-// This is a C++ SDE simulator
+// This is a C++ SDE sAimulator
 #include <iostream>
 #include <cmath>
 #include <functional>
@@ -68,28 +68,34 @@ std::vector<std::vector<double>> solveSDE(const SDE_Parameters& params) {
 int main(int argc, char* argv[]) {
    // If no lambda functions are provided for drift and defusion functions, 
    // we return the following default  drift and diffusion functions
-   auto drift = [](double X, double t) { return X; };
+  auto drift = [](double X, double t) { return 1.0-X; };
    auto diffusion = [](double X, double t) { return 0.5 * X; };
-   // Note that this defaults to the following SDE dX = X * dt + 0.5 * X * dW
+   // Note that this defaults to the following Ornstein-Uhlenbeck process
+   // with theta =1, mu=1, and sigma .5, i.e.
+   // we default to the following SDE: dXt = -Xt * dt + 0.5 * X * dWt
 
 
-   // Set the parameters for the SDE
+   // Next, we set the parameters for the SDE
+   // For now, we default with an initial value of 1.0, increments of .01,
+   // and time 1.0, with 100 simulations.
    SDE_Parameters params;
    params.drift = drift;
    params.diffusion = diffusion;
    params.initial_value = 1.0;  
    params.dt = 0.01;           
    params.T = 1.0;             
-   params.N_simulations = 10;  
+   params.N_simulations = 100;  
 
    // Solve the SDE using the Euler-Maruyama method
    auto simulations = solveSDE(params);
 
    // Print the results of the simulations
+   // Note: The results are structured to be saved as a .csv file
+   // To best accomplish this, when running the program, pipe into NAME.csv
    for (int i = 0; i < params.N_simulations; ++i) {
-       std::cout << "Simulation " << i + 1 << ":t,X,\n";
+       std::cout << "Simulation:t,X,\n";
        for (size_t j = 0; j < simulations[i].size(); ++j) {
-           std::cout<<", "  << j * params.dt << "," << simulations[i][j] << "\n";
+	 std::cout<<i+1<<", "  << j * params.dt << "," << simulations[i][j] << "\n";
        }
        std::cout << std::endl;
    }
