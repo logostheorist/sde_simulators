@@ -1,4 +1,4 @@
-x# sde_simulators
+# sde_simulators
 Five variations of the Euler-Maruyama algorithm implemented in different languages to compare languages.
 
 Default SDE is Ornstein-Uhlenbeck with theta parameter 1.0, mu parameter 1, and sigma 0.5.
