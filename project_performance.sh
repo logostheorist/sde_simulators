@@ -1,61 +1,28 @@
-#!/bin/zsh
-# To amend for Linux or bash in general, update `zsh` in the previous line to `bash` 
-# This file contains a function to track memory and runtime for the sde_simulator functions
-# that are contained in this repo
-track_memory_and_runtime() {
-    local file_path=$1
-    local file_extension=${file_path##*.}
+#! /usr/lib zsh
+# To amend for Linux or bash in general, replace zsh with the desired folder
+# The following command assumes that you have compiled the c++ and rust files
 
-    if [ ! -f "$file_path" ]; then
-        echo "Error: File $file_path does not exist."
-        exit 1
-    fi
-
-    # Determine the command to run based on the file extension
-    case "$file_extension" in
-        "rs")
-            compile_cmd="rustc $file_path -o rust_sde_simulator"
-            execute_cmd="./rust_sde_simulator"
-            ;;
-        "ml")
-            execute_cmd="ocaml $file_path"
-            ;;
-        "m")
-            execute_cmd="octave --silent $file_path"
-            ;;
-        "py")
-            execute_cmd="python3 $file_path"
-            ;;
-        *)
-            echo "Error: Unsupported file extension: $file_extension"
-            exit 1
-            ;;
+code_folders=("c++" "rust" "ocaml" "octave" "python")
+echo "Comparing the performance of a simple SDE simulation for the following languages: \n"
+for folder in "${code_folders[@]}"
+do
+    csv_file="${folder}_simulation.csv"
+    echo "\n\n\tIn $folder:"
+    case "$folder" in
+	"c++")
+	    /usr/bin/time ./c++/sde_simulator > "$csv_file"
+	    ;;
+	"rust")
+	    /usr/bin/time ./rust_sde_simulator/target/release/rust_sde_simulator  > "$csv_file"
+	    ;;
+	"ocaml")
+	    /usr/bin/time ocaml ./ocaml/sde_simulator.ml > "$csv_file"
+	    ;;
+	"octave")
+	    /usr/bin/time octave --silent ./octave/sde_simulator.m > "$csv_file"
+	    ;;
+	"python")
+	    /usr/bin/time python3 ./python/sde_simulator.py > "$csv_file"
+	    ;;
     esac
-
-    # Compile the file if necessary
-    if [ -n "$compile_cmd" ]; then
-        echo "Compiling $file_path..."
-        eval "$compile_cmd"
-        if [ $? -ne 0 ]; then
-            echo "Compilation failed for $file_path"
-            exit 1
-        fi
-    fi
-
-    # Track memory and runtime using /usr/bin/time
-    echo "Running $file_path..."
-    /usr/bin/time -f "\nMemory (KB): %M\nRuntime (s): %e" bash -c "$execute_cmd"
-
-    # Cleanup compiled file if it exists
-    if [ -f "program_rust" ]; then
-        rm program_rust
-    fi
-}
-
-# Usage
-if [ $# -eq 0 ]; then
-    echo "Usage: $0 <file_path>"
-    exit 1
-fi
-
-track_memory_and_runtime "$1"
+done
